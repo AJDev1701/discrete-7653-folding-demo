@@ -1,16 +1,16 @@
 # discrete-7653-folding-demo
 
-Deterministic permutation engine using the **7653 generator ratio** (76 / 53).
+A deterministic permutation engine over a 97-position block, stepped by the rational generator ratio 76/53.
 
 > **Classification:** `STANDALONE_DETERMINISTIC_PERMUTATION`
-> **Solve claims:** `FALSE`
+> **Cryptographic claims:** None
 > **External dependencies:** Zero
 
 ---
 
 ## What It Does
 
-Generates a unique, reproducible 97-position permutation driven by the 7653 recurrence:
+It builds a single reproducible permutation of 97 positions from an integer-only stepping recurrence.
 
 | Parameter | Value |
 |---|---|
@@ -24,21 +24,35 @@ Generates a unique, reproducible 97-position permutation driven by the 7653 recu
 | Hinge-step ticks | 42 |
 | Total pointer shift | 55(1) + 42(2) = 139 |
 
+### Why N = 97
+
+97 is prime, so every nonzero probe step is coprime with the block size and the collision probe is guaranteed to visit every slot. It is also the smallest prime at which the 76/53 accumulator completes 42 full carries, which gives a non-trivial mix of single and hinge steps.
+
 ## Guaranteed Invariants
 
 - **Bijectivity:** `set(permutation) == {0..96}`, `len == 97`
-- **Exact inversion:** `invert_permute(permute(seq)) == seq` for all length-97 sequences
-- **Coprimality guard:** Collision step is rejected if `gcd(step, N) != 1`
-- **Determinism:** Identical output on every call with default parameters
+- **Exact inversion:** `invert_permute(permute(seq)) == seq` for every length-97 sequence
+- **Coprimality guard:** a collision step is rejected if `gcd(step, N) != 1`
+- **Determinism:** identical output on every call with default parameters
+- **Integer-only:** no floating-point arithmetic anywhere in the engine
 
 ## Usage
 
 ```bash
-# Apply permutation
-echo "OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR" | python cli.py --permute
+# Build a neutral 97-character test string
+INPUT=$(python -c "print(('ABCDEFGHIJKLMNOPQRSTUVWXYZ'*4)[:97])")
 
-# Invert permutation
-python cli.py --invert --input "..."
+# Apply the permutation
+echo "$INPUT" | python cli.py --permute
+
+# Round-trip: permute, then invert, and get the original back
+echo "$INPUT" | python cli.py --permute | python cli.py --invert
+```
+
+After `pip install .`, the same commands work through the `fold` entry point:
+
+```bash
+echo "$INPUT" | fold --permute
 ```
 
 ## Testing
@@ -48,13 +62,15 @@ pip install pytest
 pytest
 ```
 
-1 008 test cases: 1 000 randomised ASCII round-trips + 8 structural invariant assertions.
+The suite runs **1,012 test cases**:
+
+- 1,000 randomized printable-ASCII round-trips (seeded, reproducible)
+- 3 non-coprime collision-step rejections (steps 97, 194, 0)
+- 9 structural checks: bijectivity, length, determinism, inverse composition, coprime acceptance, length-mismatch rejection, generator ratio, probe coprimality, and stride counts (55 / 42)
 
 ## Scope Boundary
 
-This repository implements and verifies the folding permutation only.
-It contains no substitution cipher, no crib alignment tests, and makes
-no claims regarding Kryptos K4 or any cryptographic solution.
+This repository implements and verifies one integer permutation and its inverse, and nothing more. There is no substitution layer and no keying, and it makes no claim to encrypt, decrypt, or solve anything. It is a teaching artifact for finite-ring stepping, rational pacing, and exact invertibility.
 
 ---
 

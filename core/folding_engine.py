@@ -91,8 +91,8 @@ def build_permutation(
         pointer              = candidate
 
     # Invariant check
-    assert set(permutation) == set(range(n)), "Bijectivity violated"
-    assert len(permutation) == n,             "Length invariant violated"
+    if len(permutation) != n or set(permutation) != set(range(n)):
+        raise FoldingEngineError("Bijectivity/length invariant violated")
 
     return permutation
 

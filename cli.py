@@ -48,8 +48,11 @@ def main() -> int:
     else:
         raw = sys.stdin.read()
 
-    # Strip single trailing newline if present (shell piping artefact)
-    if raw.endswith("\n"):
+    # Strip one trailing line ending if present (shell piping artefact).
+    # Handles both POSIX "\n" and Windows "\r\n".
+    if raw.endswith("\r\n"):
+        raw = raw[:-2]
+    elif raw.endswith("\n"):
         raw = raw[:-1]
 
     if len(raw) != BLOCK_SIZE:

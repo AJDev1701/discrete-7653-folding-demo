@@ -18,3 +18,9 @@ jobs:
         run: pip install pytest
       - name: Run test suite
         run: pytest
+      - name: Headless anchor verification
+        run: python verify_z97_headless.py
+      - name: Verify install and entry point
+        run: |
+          pip install .
+          python -c "print(('ABCDEFGHIJKLMNOPQRSTUVWXYZ'*4)[:97])" | fold --permute | fold --invert
