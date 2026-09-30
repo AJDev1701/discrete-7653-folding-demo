@@ -10,6 +10,7 @@ Usage:
     echo "YOURINPUTSTRING..." | python cli.py --invert
     python cli.py --permute --input "YOURINPUTSTRING..."
     python cli.py --invert  --input "YOURINPUTSTRING..."
+    python cli.py --permute --n 101 --num 130 --den 53 --probe 7 --input "..."
 """
 
 from __future__ import annotations
@@ -19,6 +20,9 @@ import sys
 
 from core.folding_engine import (
     BLOCK_SIZE,
+    COLLISION_STEP,
+    GENERATOR_DEN,
+    GENERATOR_NUM,
     FoldingEngineError,
     build_permutation,
     invert_permute,
@@ -37,8 +41,16 @@ def main() -> int:
     mode.add_argument("--invert", action="store_true",
                       help="Invert the 7653 folding permutation on input.")
     parser.add_argument("--input", "-i", type=str, default=None,
-                        help=f"Input string of exactly {BLOCK_SIZE} characters. "
-                             f"If omitted, reads from stdin.")
+                        help="Input string of exactly N characters (default N=97). "
+                             "If omitted, reads from stdin.")
+    parser.add_argument("--n", type=int, default=BLOCK_SIZE,
+                        help=f"Block size N (default {BLOCK_SIZE}).")
+    parser.add_argument("--num", type=int, default=GENERATOR_NUM,
+                        help=f"Generator numerator (default {GENERATOR_NUM}).")
+    parser.add_argument("--den", type=int, default=GENERATOR_DEN,
+                        help=f"Generator denominator (default {GENERATOR_DEN}).")
+    parser.add_argument("--probe", type=int, default=COLLISION_STEP,
+                        help=f"Collision probe step, coprime with N (default {COLLISION_STEP}).")
 
     args = parser.parse_args()
 
@@ -55,16 +67,17 @@ def main() -> int:
     elif raw.endswith("\n"):
         raw = raw[:-1]
 
-    if len(raw) != BLOCK_SIZE:
+    if len(raw) != args.n:
         print(
-            f"ERROR: Input must be exactly {BLOCK_SIZE} characters, "
+            f"ERROR: Input must be exactly {args.n} characters, "
             f"got {len(raw)}.",
             file=sys.stderr,
         )
         return 1
 
     try:
-        pi   = build_permutation()
+        pi   = build_permutation(n=args.n, num=args.num, den=args.den,
+                                 collision_step=args.probe)
         seq  = list(raw)
 
         if args.permute:

@@ -1,6 +1,6 @@
 # discrete-7653-folding-demo
 
-A deterministic permutation engine over a 97-position block, stepped by the rational generator ratio 76/53.
+A deterministic permutation engine stepped by a rational generator ratio num/den. The default example is 76/53 over a 97-position block.
 
 > **Classification:** `STANDALONE_DETERMINISTIC_PERMUTATION`
 > **Cryptographic claims:** None
@@ -27,6 +27,19 @@ It builds a single reproducible permutation of 97 positions from an integer-only
 ### Why N = 97
 
 97 is prime, so every nonzero probe step is coprime with the block size and the collision probe is guaranteed to visit every slot. It is also the smallest prime at which the 76/53 accumulator completes 42 full carries, which gives a non-trivial mix of single and hinge steps.
+
+## Choosing Parameters (v0.1.2)
+
+`build_permutation(n=97, num=76, den=53, collision_step=7)`. All four are optional, and the defaults reproduce the v0.1.1 permutation exactly.
+
+- Strides come from the ratio: `base = num // den`, `rem = num % den`, `hinge = base + 1`.
+- Valid inputs: `n >= 2`, `den >= 1`, `num >= 1`, and `gcd(collision_step, n) == 1`. Anything else raises `FoldingEngineError`.
+- `n` does not have to be prime. A coprime probe is enough to reach every slot. Prime `n` simply makes every nonzero probe valid.
+- Hinge (carry) steps over one pass: `floor(n * rem / den)`. The default gives floor(97 * 23 / 53) = 42.
+
+```bash
+echo "$INPUT" | python cli.py --permute --n 97 --num 76 --den 53 --probe 7
+```
 
 ## Guaranteed Invariants
 
@@ -62,11 +75,12 @@ pip install pytest
 pytest
 ```
 
-The suite runs **1,012 test cases**:
+The suite runs **1,071 test cases**:
 
 - 1,000 randomized printable-ASCII round-trips (seeded, reproducible)
 - 3 non-coprime collision-step rejections (steps 97, 194, 0)
 - 9 structural checks: bijectivity, length, determinism, inverse composition, coprime acceptance, length-mismatch rejection, generator ratio, probe coprimality, and stride counts (55 / 42)
+- 59 parameterization tests (v0.1.2): frozen v0.1.1 regression lock, a 48-case parameter grid, 6 invalid-parameter rejections, and the deprecation shim
 
 ## Scope Boundary
 
