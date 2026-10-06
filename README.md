@@ -49,6 +49,21 @@ echo "$INPUT" | python cli.py --permute --n 97 --num 76 --den 53 --probe 7
 - **Determinism:** identical output on every call with default parameters
 - **Integer-only:** no floating-point arithmetic anywhere in the engine
 
+## Reference Values
+
+With default parameters, any correct build produces exactly these values. `python verify_z97_headless.py` rebuilds the permutation with the standard library only and checks all of them.
+
+| Check | Value |
+|---|---|
+| First three entries | `[0, 1, 3]` |
+| Cycle type | `[38, 35, 18, 3, 1, 1, 1]` |
+| Permutation order (lcm of cycle lengths) | 11,970 |
+| SHA-256 of the permutation as compact JSON | `a01406b0c6e3444818942e6c215b24e301e1360abc78a22b3166bd68dcd8f1f7` |
+| Order-sensitive sum, `sum(i * P[i]) mod 97` | 73 |
+| Plain sum (sanity only) | 4,656 |
+
+The plain sum is the same for every permutation of 97 positions, so it cannot detect a wrong ordering. Use the SHA-256 for that. An order of 11,970 is a property of the cycle structure, not a security parameter.
+
 ## Usage
 
 ```bash
@@ -75,12 +90,13 @@ pip install pytest
 pytest
 ```
 
-The suite runs **1,071 test cases**:
+The suite runs **1,073 test cases**:
 
 - 1,000 randomized printable-ASCII round-trips (seeded, reproducible)
 - 3 non-coprime collision-step rejections (steps 97, 194, 0)
 - 9 structural checks: bijectivity, length, determinism, inverse composition, coprime acceptance, length-mismatch rejection, generator ratio, probe coprimality, and stride counts (55 / 42)
 - 59 parameterization tests (v0.1.2): frozen v0.1.1 regression lock, a 48-case parameter grid, 6 invalid-parameter rejections, and the deprecation shim
+- 2 reference-value tests (v0.1.3): permutation SHA-256 and the order-sensitive sum
 
 ## Scope Boundary
 

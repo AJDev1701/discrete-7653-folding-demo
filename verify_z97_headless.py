@@ -7,10 +7,18 @@ this file does not import the package) and checks it against fixed anchors.
 If the repo's core package can be imported, it also checks that core
 produces the identical permutation.
 
-Anchor values are the ones the engine at 1e5908a actually produces.
+Anchor values are the ones the engine produces at v0.1.2 (8d46111) with
+default parameters; v0.1.1 produces the identical permutation.
+
+Sequence integrity is checked by the SHA-256 of the permutation (compact
+JSON, no spaces) and by the order-sensitive sum (i * P[i]) mod 97. The plain
+sum 0..96 = 4656 holds for every permutation of 97 slots, so it is only a
+sanity check, not evidence of the right ordering.
 Exit status: 0 = all checks pass, 1 = any failure.
 """
 
+import hashlib
+import json
 import math
 import sys
 import time
@@ -24,6 +32,8 @@ EXPECT_SUM = N * (N - 1) // 2          # 4656
 EXPECT_TICKS = (55, 42)                # (base, hinge)
 EXPECT_CYCLES = [38, 35, 18, 3, 1, 1, 1]
 EXPECT_ORDER = 11970                   # lcm of the cycle lengths
+EXPECT_SHA256 = "a01406b0c6e3444818942e6c215b24e301e1360abc78a22b3166bd68dcd8f1f7"
+EXPECT_WSUM = 73                       # sum(i * P[i]) mod 97
 
 
 def build():
@@ -60,6 +70,8 @@ def main():
     for i, t in enumerate(P):
         inv[t] = i
     cyc = cycles(P)
+    digest = hashlib.sha256(json.dumps(P, separators=(",", ":")).encode()).hexdigest()
+    wsum = sum(i * x for i, x in enumerate(P)) % N
     order = 1
     for c in cyc:
         order = order * c // math.gcd(order, c)
@@ -70,7 +82,9 @@ def main():
         ("Canonical head", P[:3] == EXPECT_HEAD),
         ("Bijective inversion", all(P[inv[k]] == k for k in range(N))
                                 and sorted(P) == list(range(N))),
-        ("Conserved sum", sum(P) == EXPECT_SUM),
+        ("Sum sanity (not order-sensitive)", sum(P) == EXPECT_SUM),
+        ("Permutation SHA-256", digest == EXPECT_SHA256),
+        ("Order-sensitive sum (mod 97) = 73", wsum == EXPECT_WSUM),
         ("Cycle spectrum", cyc == EXPECT_CYCLES and sum(cyc) == N),
         ("Group order", order == EXPECT_ORDER),
         ("Probe coprimality", math.gcd(PROBE, N) == 1),
@@ -86,6 +100,7 @@ def main():
     for name, r in checks:
         print(f"[{'PASS' if r else 'FAIL'}] {name}")
     print(f"head={P[:3]} sum={sum(P)} cycles={cyc} order={order}")
+    print(f"sha256={digest} wsum_mod97={wsum}")
     print(f"{'ALL PASS' if ok else 'FAILURE'} in {ms:.2f} ms")
     return 0 if ok else 1
 

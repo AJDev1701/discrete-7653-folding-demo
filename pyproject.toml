@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name            = "discrete-7653-folding-demo"
-version         = "0.1.2"
+version         = "0.1.3"
 description     = "Deterministic integer permutation engine with a parameterized rational generator (default 76/53 over a 97-position block). No cryptographic claims."
 license         = { text = "MIT" }
 requires-python = ">=3.11"
