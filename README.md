@@ -102,6 +102,10 @@ The suite runs **1,073 test cases**:
 
 This repository implements and verifies one integer permutation and its inverse, and nothing more. There is no substitution layer and no keying, and it makes no claim to encrypt, decrypt, or solve anything. It is a teaching artifact for finite-ring stepping, rational pacing, and exact invertibility.
 
+## Support
+
+If this project is useful to you, you can support open research at [Buy Me a Coffee (`ajdev1701`)](https://buymeacoffee.com/ajdev1701).
+
 ---
 
 *MIT License | 2026 Alex J. Dalhaus (AJDev1701)*
