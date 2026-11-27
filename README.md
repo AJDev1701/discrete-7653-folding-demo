@@ -108,4 +108,4 @@ If this project is useful to you, you can support open research at [Buy Me a Cof
 
 ---
 
-*MIT License | 2026 Alex J. Dalhaus (AJDev1701)*
+*MIT License | 2026 Alex J. Dalhaus / HexiQ contributors*
